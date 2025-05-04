@@ -1,0 +1,43 @@
+{
+    "email": {
+        "send_from": "{{ vzesync.email.send_from }}",
+        "send_to": ["{{ vzesync.email.send_to }}"],
+        "subject": "{{ vzesync.email.subject }}",
+        "body": "{{ vzesync.email.body }}",
+        "smtp_username": "{{ vzesync.email.smtp_username }}",
+        "smtp_password": "{{ vzesync.email.smtp_password }}",
+        "smtp_host": "{{ vzesync.email.smtp_host }}",
+    },
+    "pvehost": {
+        "hostname": "{{ vzesync.pvehost.hostname }}",
+        "hostkey": ["ed25519", "{{ vzesync.pve_host_key.stdout.strip() }}"],
+        "username": "{{ vzesync.pvehost.username }}",
+        "private_key": ["{{ vzesync.pvehost.private_key.type }}", {{ vzesync.pvehost.private_key.key }}"],
+        "pve_backup_drives": {
+{% for drive, name in vzesync.pvehost.pve_backup_drives.items() %}
+            "{{ drive }}": "{{ name }}"{% if not loop.last %},
+{% endif %}
+{% endfor %}
+
+        },
+        "timestampfolder": "{{ vzesync.timestampfolder }}",
+        "scsi_drive": "{{ vzesync.pvehost.scsi_drive }}",
+        "vmid": "{{ vzesync.pvehost.vmid }}",
+    },
+    "zfshost": {
+        "hostname": "{{ vzesync.zfshost.hostname }}",
+        "hostkey": ["ed25519", "{{ vzesync.zfs_host_key.stdout.strip() }}"],
+        "username": "{{ vzesync.zfshost.username }}",
+        "private_key": ["{{ vzesync.zfshost.private_key.type }}", "{{ vzesync.zfshost.private_key.key }}"],
+        "backuppool_name": "{{ vzesync.zfshost.backuppool_name }}",
+        "backupfs_name": "{{ vzesync.zfshost.backupfs_name }}",
+        "retention": {
+{% for key, value in vzesync.zfshost.retention.items() %}
+            "{{ key }}": {{ value }}{% if not loop.last %},
+{% endif %}
+{% endfor %}
+
+        },
+        "timestampfolder": "{{ vzesync.timestampfolder }}"
+    }
+}

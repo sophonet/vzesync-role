@@ -1,0 +1,90 @@
+---
+# This role installs the zfssyncservice on a Debian VM and configures it to sync ZFS datasets.
+
+- name: Check if the host is running Debian
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution == "Debian"
+    fail_msg: "This playbook is intended for Debian hosts only."
+
+- name: Ensure that private_key.key is single line and contains double-escaped newlines for each host
+  ansible.builtin.assert:
+    that:
+      - item is string
+      - '"\\n" in item'
+      - not ("\n" in item)
+    fail_msg: "The variable {{ item }} must be a single-line string with double-escaped newlines."
+    quiet: yes
+  loop:
+    - "{{ zfshost.private_key.key }}"
+    - "{{ pvehost.private_key.key }}"
+
+- name: Install paramiko via apt
+  ansible.builtin.apt:
+    name:
+    - python3-paramiko
+    - python3-pip
+    state: present
+    update_cache: yes
+
+- name: Retrieve SSH host key from server
+  delegate_to: localhost
+  shell: ssh-keyscan -t ed25519 {{ pvehost.hostname }} 2>/dev/null | grep -v '^#' | awk '{print $3}'
+  register: pve_host_key
+
+- name: Retrieve SSH host key from zfs server VM
+  delegate_to: localhost
+  shell: ssh-keyscan -t ed25519 {{ zfshost.hostname }} 2>/dev/null | grep -v '^#' | awk '{print $3}'
+  register: zfs_host_key
+
+- name: Check if 'zpool' command exists
+  ansible.builtin.command:
+    cmd: which zpool
+  register: zpool_check
+  failed_when: zpool_check.rc != 0
+  changed_when: false
+
+- name: Check if 'zfs' command exists
+  ansible.builtin.command:
+    cmd: which zfs
+  register: zfs_check
+  failed_when: zfs_check.rc != 0
+  changed_when: false
+
+- name: Check if 'qm' command exists on pve host
+  ansible.builtin.command:
+    cmd: which qm
+  register: qm_check
+  failed_when: qm_check.rc != 0
+  changed_when: false
+  delegate_to: "{{ pvehost.hostname }}"
+
+- name: Send a test email
+  mail:
+    host: "{{ email.smtp_host }}"
+    port: 587
+    username: "{{ email.smtp_username }}"
+    password: "{{ email.smtp_password }}"
+    to: "{{ email.send_to }}"
+    from: "{{ email.send_from }}"
+    subject: "{{ email.subject }}"
+    body: "This is a test e-mail."
+  check_mode: no
+  when: ansible_check_mode
+
+- name: Install vzesync
+  ansible.builtin.command: 
+    cmd: pip3 install vzesync
+  
+- name: Copy config.json to the zfssyncservice directory
+  template:
+    src: config.json.j2
+    dest: "{{ vzesync.config_path }}"
+
+- name: Copy zfssyncservice.service to systemd directory
+  template:
+    src: zfssyncservice.service
+    dest: /etc/systemd/system/zfssyncservice.service
+  notify:
+    - Reload systemd daemon
+    - Restart zfssyncservice

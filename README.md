@@ -1,0 +1,47 @@
+# Ansible role for setting up vzesync
+
+Example playbook using this role:
+
+```
+- name: Assign vzesync role to VM
+  hosts: host
+  roles:
+    - vzesync
+  remote_user: root
+  vars:
+    vzesync:
+      timestampfolder: "/var/lib/vzesync/timestamps"
+      config_path: "/etc/vzesync/config.json"
+      email:
+        send_from: "User<root@domain.com>"
+        send_to: "receiver@domain.com"
+        subject: "Backup notification"
+        body: "Please find attached the zfs sync backup log. \n\nBest regards,\n\nYour zfs sync service"
+        smtp_username: "smtpusername"
+        smtp_password: "smtppassword"
+        smtp_host: "smtp.server.com"
+
+      pvehost:
+        hostname: "IPADDRESSOFPVEHOST"
+        username: "root"
+        private_key:
+          type: "ssh-rsa"
+          key: "-----BEGIN OPENSSH PRIVATE KEY-----\\nONE_LINE_WITH\\nDOUBLE_ESCAPED_LINEBREAKS\\n-----END OPENSSH PRIVATE KEY-----"
+        pve_backup_drives:
+          dev_disk_by_id_identifier1: "My first backup drive"
+          dev_disk_by_id_identifier2: "My new backup drive"
+        scsi_drive: "scsi4"
+        vmid: "100"
+
+      zfshost:
+        hostname: "IPADDRESSOFZFSHOST"
+        username: "root"
+        private_key:
+          type: "ssh-ed25519"
+          key: "-----BEGIN OPENSSH PRIVATE KEY-----\\nONE_LINE_WITH\\nDOUBLE_ESCAPED_LINEBREAKS\\n-----END OPENSSH PRIVATE KEY-----"
+        backuppool_name: "backuppool"
+        backupfs_name: "root"
+        retention:
+          default: 10
+          timemachine: 1
+```

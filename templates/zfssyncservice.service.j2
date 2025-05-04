@@ -1,0 +1,13 @@
+[Unit]
+Description=Backup service using zfs send/recv in a container
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/usr/local/bin
+Restart=always
+ExecStart=python3 /usr/local/bin/zfssyncservice.py --config {{ vzesync.config_path }}
+
+[Install]
+WantedBy=multi-user.target
