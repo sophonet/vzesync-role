@@ -2,8 +2,8 @@
   systemd:
     daemon_reload: yes
 
-- name: Restart zfssyncservice
+- name: Restart vzesync
   systemd:
-    name: zfssyncservice
+    name: vzesync
     state: restarted
     enabled: yes

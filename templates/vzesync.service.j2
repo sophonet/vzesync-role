@@ -7,7 +7,7 @@ Type=simple
 User=root
 WorkingDirectory=/usr/local/bin
 Restart=always
-ExecStart=python3 /usr/local/bin/zfssyncservice.py --config {{ vzesync.config_path }}
+ExecStart=python3 /usr/local/bin/vzesync.py --config {{ vzesync.config_path }}
 
 [Install]
 WantedBy=multi-user.target

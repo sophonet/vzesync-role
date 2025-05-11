@@ -76,15 +76,15 @@
   ansible.builtin.command: 
     cmd: pip3 install vzesync
   
-- name: Copy config.json to the zfssyncservice directory
+- name: Copy config.json to the vzesync directory
   template:
     src: config.json.j2
     dest: "{{ vzesync.config_path }}"
 
-- name: Copy zfssyncservice.service to systemd directory
+- name: Copy vzesync.service to systemd directory
   template:
-    src: zfssyncservice.service
-    dest: /etc/systemd/system/zfssyncservice.service
+    src: vzesync.service
+    dest: /etc/systemd/system/vzesync.service
   notify:
     - Reload systemd daemon
-    - Restart zfssyncservice
+    - Restart vzesync
